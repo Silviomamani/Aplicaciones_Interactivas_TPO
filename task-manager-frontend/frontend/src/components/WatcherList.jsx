@@ -1,31 +1,46 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import api from '../api/client.js'
 import WatcherAvatarGroup from './WatcherAvatarGroup.jsx'
 
-export default function WatcherList({ taskId }) {
+export default function WatcherList({ taskId, onWatchersLoaded }) {
   const [watchers, setWatchers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const loadingRef = useRef(false)
+  const lastLoadedTaskIdRef = useRef(null)
 
   useEffect(() => {
-    if (taskId) {
-      loadWatchers()
+    if (taskId && taskId.trim()) {
+      const cleanTaskId = taskId.trim()
+      // Solo cargar si el taskId cambió y no está cargando
+      if (cleanTaskId !== lastLoadedTaskIdRef.current && !loadingRef.current) {
+        loadWatchers()
+      }
     } else {
       setWatchers([])
       setLoading(false)
+      loadingRef.current = false
+      lastLoadedTaskIdRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskId])
 
   const loadWatchers = async () => {
-    if (!taskId) {
-      setWatchers([])
-      setLoading(false)
+    if (!taskId || loadingRef.current) {
       return
     }
     
     // Limpiar el ID de espacios y caracteres extra
     const cleanTaskId = taskId.trim()
+    
+    // Verificar si ya se cargó este taskId
+    if (cleanTaskId === lastLoadedTaskIdRef.current) {
+      return
+    }
+    
+    // Marcar como cargando para evitar llamadas duplicadas
+    loadingRef.current = true
+    lastLoadedTaskIdRef.current = cleanTaskId
     
     try {
       setLoading(true)
@@ -33,6 +48,11 @@ export default function WatcherList({ taskId }) {
       const response = await api.get(`/tareas/${cleanTaskId}/watchers`)
       const watchers = response.data?.data?.watchers || response.data?.watchers || []
       setWatchers(watchers)
+      
+      // Notificar al padre cuando se cargan los watchers
+      if (onWatchersLoaded) {
+        onWatchersLoaded(watchers)
+      }
     } catch (err) {
       // Si es 404, la tarea podría no existir aún o no tener watchers
       if (err.response?.status === 404) {
@@ -59,6 +79,7 @@ export default function WatcherList({ taskId }) {
       }
     } finally {
       setLoading(false)
+      loadingRef.current = false
     }
   }
 

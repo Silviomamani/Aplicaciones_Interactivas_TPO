@@ -131,53 +131,15 @@ export default function TaskForm() {
     }
   }
 
-  const verificarSuscripcion = async () => {
-    // Usar el ID de la tarea cargada si está disponible, sino el de la URL
-    const taskIdToUse = tareaId || id
-    if (!taskIdToUse) {
-      return
-    }
-    
-    // Limpiar el ID de espacios y caracteres extra
-    const cleanId = String(taskIdToUse).trim()
-    
+  const verificarSuscripcionDesdeWatchers = async (watchersList) => {
     try {
-      const watchersRes = await api.get(`/tareas/${cleanId}/watchers`)
-      const watchersList = watchersRes?.data?.data?.watchers || []
-      
       // Obtener el usuario actual para verificar si está suscrito
-      try {
-        const userRes = await api.get('/auth/perfil')
-        const currentUserId = userRes?.data?.data?.usuario?.id || userRes?.data?.data?.id
-        const watching = watchersList.some(w => w.userId === currentUserId)
-        setIsWatching(watching)
-      } catch (e) {
-        console.error('Error obteniendo perfil de usuario:', e.response?.data || e.message)
-        setIsWatching(false)
-      }
+      const userRes = await api.get('/auth/perfil')
+      const currentUserId = userRes?.data?.data?.usuario?.id || userRes?.data?.data?.id
+      const watching = watchersList.some(w => w.userId === currentUserId)
+      setIsWatching(watching)
     } catch (e) {
-      // Si el error es 404, la tarea podría no existir aún o no tener watchers
-      if (e.response?.status === 404) {
-        setIsWatching(false)
-        return
-      }
-      // Si el error es 400, mostrar los errores de validación
-      if (e.response?.status === 400) {
-        console.error('Error de validación (400):', {
-          errores: e.response?.data?.errores,
-          message: e.response?.data?.message,
-          tareaId: cleanId
-        })
-        setIsWatching(false)
-        return
-      }
-      console.error('Error verificando suscripción:', {
-        status: e.response?.status,
-        statusText: e.response?.statusText,
-        data: e.response?.data,
-        message: e.message,
-        url: e.config?.url
-      })
+      console.error('Error obteniendo perfil de usuario:', e.response?.data || e.message)
       setIsWatching(false)
     }
   }
@@ -245,12 +207,7 @@ export default function TaskForm() {
         }
         
         cargarDatosTarea(t)
-        // Verificar suscripción después de que la tarea esté completamente cargada
-        if (t.id) {
-          setTimeout(() => {
-            verificarSuscripcion()
-          }, 300)
-        }
+        // La suscripción se verificará automáticamente cuando WatcherList cargue los watchers
       }
     } catch (e) {
       console.error('Error cargando tarea:', e)
@@ -591,7 +548,10 @@ export default function TaskForm() {
                 />
               }
             >
-              <WatcherList taskId={tareaId || id} />
+              <WatcherList 
+                taskId={tareaId || id} 
+                onWatchersLoaded={verificarSuscripcionDesdeWatchers}
+              />
             </Card>
 
             <Card title="Comentarios">
