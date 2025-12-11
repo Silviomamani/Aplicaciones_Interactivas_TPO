@@ -1,0 +1,152 @@
+### Variables globales
+@baseUrl = http://localhost:3000/api/v1
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0ZjQ4MTFlLTg4YTMtNDc3Ny04ZWZhLWNlN2FmNThhOTcxYiIsImlhdCI6MTc1ODgzNjc4MiwiZXhwIjoxNzU5NDQxNTgyfQ.pqcCSO54nPMrE1O9LJGe_LQv2FA5wXesJkPhqbGrJiw
+
+@token_1= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImEyMzE4YzhkLWU1NzktNGUyNi05NjcyLTUxZGVmMTA5NWY0YSIsImlhdCI6MTc1ODg0NjQ3NywiZXhwIjoxNzU5NDUxMjc3fQ.a9YyjCA4cNd0nnK7HwXUsHofOQ8dS7CRvg2NnfuAILU
+
+@token_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNmYjdmNGIyLTgxZjMtNDJiMS05ZTEwLWM2ZWMyY2I4YjQ5NSIsImlhdCI6MTc1ODg4MDAwMCwiZXhwIjoxNzU5NDg0ODAwfQ.abc123DEF456...
+### 1. Registro de usuario válido
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Usuario Test",
+  "email": "parcial1@example.com",
+  "password": "123456"
+}
+
+### 1. Registro de usuario válido
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Usuario Test",
+  "email": "parcial1@example.com",
+  "password": "123456"
+}
+
+### 2. Login con usuario registrado (guarda el token que devuelve)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "parcial1@example.com",
+  "password": "123456"
+}
+
+### 3. Login con Ana (si ya existe)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "carlos@example.com",
+  "password": "123456"
+}
+
+### 4. Obtener perfil del usuario
+GET {{baseUrl}}/auth/perfil
+Authorization: Bearer {{token_1}}
+
+### 5. Registro con email inválido (con falla)
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Test",
+  "email": "email-invalido",
+  "password": "123456"
+}
+
+### 6. Registro con contraseña muy corta (con falla)
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Test",
+  "email": "test2@example.com",
+  "password": "123"
+}
+
+### 7. Crear equipo
+POST {{baseUrl}}/equipos
+Authorization: Bearer {{token_1}}
+Content-Type: application/json
+
+{
+  "nombre": "parcial1 equipo",
+  "descripcion": "Equipo para testing de la API akjsdgbkjasd",
+  "color": "#FF5733"
+}
+
+### 8. Obtener todos los equipos
+GET {{baseUrl}}/equipos
+Authorization: Bearer {{token_1}}
+
+### 9. Obtener equipo específico 
+GET {{baseUrl}}/equipos/52920422-22c6-4345-ac85-69693a08fa35
+Authorization: Bearer {{token_1}}
+
+### 10. Actualizar equipo 
+PUT {{baseUrl}}/equipos/c62e1415-6cd5-4110-b498-a0e024fcce76
+Authorization: Bearer {{token_1}}
+Content-Type: application/json
+
+{
+  "nombre": "Equipo dinamicamente actualizado",
+  "descripcion": "Descripción actualizada",
+  "color": "#00FF00"
+}
+
+### 11. Agregar miembro al equipo
+POST {{baseUrl}}/equipos/d20cbf03-d2db-4577-876e-f4b9200413fc/miembros
+Authorization: Bearer {{token_1}}
+Content-Type: application/json
+
+{
+  "email": "carlos@example.com",
+  "rol": "miembro"
+}
+
+
+
+### 12. Verificar estructura del equipo creado
+GET {{baseUrl}}/equipos/d16e137c-320e-459d-9205-a6fc9af64e1e
+Authorization: Bearer {{token}}
+
+### 12a. Actualizar rol de miembro
+PUT {{baseUrl}}/equipos/c62e1415-6cd5-4110-b498-a0e024fcce76/miembros/64a9f7b5-4838-4f0d-aa7c-64364d0d578b/rol
+Authorization: Bearer {{token_admin}}
+Content-Type: application/json
+
+{
+  "rol": "admin"
+}
+
+### 12b. Actualizar rol de miembro
+PUT {{baseUrl}}/equipos/c62e1415-6cd5-4110-b498-a0e024fcce76/miembros/cfb7f4b2-81f3-42b1-9e81-c6ec2cb8b495/rol
+Authorization: Bearer {{token_1}}
+Content-Type: application/json
+
+{
+  "rol": "miembro"
+}
+### 13. Health check - verificar que el servidor esté funcionando
+GET {{baseUrl}}/health
+
+### 14. Crear tarea en un equipo
+POST {{baseUrl}}/tareas/d20cbf03-d2db-4577-876e-f4b9200413fc/cc06cadc-b264-482e-9a82-e859c9b700e4/comentarios
+Authorization: Bearer {{token_1}}
+Content-Type: application/json
+
+{
+  "usuarioId": "a2318c8d-e579-4e26-9672-51def1095f4a",
+  "value": "tarea-de-prueba"
+
+}
+
+### 15. Obtener tareas de un equipo
+GET {{baseUrl}}/tareas/d20cbf03-d2db-4577-876e-f4b9200413fc/576f4f49-1303-410c-9a98-da1bdfb37237/comentarios
+Authorization: Bearer {{token_1}}
+
+### 16. Acceso sin token (DEBE FALLAR)
+GET {{baseUrl}}/equipos

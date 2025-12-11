@@ -1,0 +1,350 @@
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI3MzU1MGViLWUwM2MtNDg1Ni1hOGQ2LWU3MDA0NTkxNWJiNyIsImlhdCI6MTc1ODc2NTAyMiwiZXhwIjoxNzU5MzY5ODIyfQ.ILOPxt8oqr41eYpgXu8g0b-5mxbb9LR8FlYavgW8jRk
+
+--------------------------------------------------
+-- Verificar conectividad básica
+--------------------------------------------------
+
+bash
+curl http://localhost:3000/api/v1/health
+
+--------------------------------------------------
+-- Autenticación y Tokens
+--------------------------------------------------
+
+-- Registrar un nuevo usuario
+
+curl -X POST http://localhost:3000/api/v1/auth/registro \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Usuario Test",
+    "email": "test@example.com",
+    "password": "123456"
+  }'
+
+-- Hacer login con usuario existente (datos de prueba)
+
+curl -X POST http://localhost:3000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "ana@example.com",
+    "password": "123456"
+  }'
+
+//////////// Guarda el token que recibes, lo necesitarás para todas las siguientes pruebas
+
+--------------------------------------------------
+-- Variables de entorno para testing
+--------------------------------------------------
+
+Crea un archivo test_token.txt y guarda tu token ahí, o usa variables:
+
+bash
+# Linux/Mac
+export TOKEN="tu-jwt-token-aqui"
+
+# Windows (Command Prompt)
+set TOKEN=tu-jwt-token-aqui
+
+# Windows (PowerShell)
+$env:TOKEN="tu-jwt-token-aqui"
+
+--------------------------------------------------
+-- Testing de Usuarios
+--------------------------------------------------
+
+1. Obtener perfil del usuario actual
+
+bash
+curl -X GET http://localhost:3000/api/v1/auth/perfil \
+  -H "Authorization: Bearer $TOKEN"
+
+2. Registro con validaciones (debería fallar)
+
+bash
+# Email inválido
+curl -X POST http://localhost:3000/api/v1/auth/registro \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Test",
+    "email": "email-invalido",
+    "password": "123456"
+  }'
+
+# Contraseña muy corta
+curl -X POST http://localhost:3000/api/v1/auth/registro \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Test",
+    "email": "test2@example.com",
+    "password": "123"
+  }'
+
+--------------------------------------------------
+-- Testing de Equipos
+--------------------------------------------------
+
+1. Crear un equipo
+
+bash
+curl -X POST http://localhost:3000/api/v1/equipos \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Mi Equipo Test",
+    "descripcion": "Equipo para testing de la API",
+    "color": "#FF5733"
+  }'
+
+-Guarda el equipoId que recibes para las siguientes pruebas
+
+
+2. Listar todos los equipos del usuario
+
+bash
+curl -X GET http://localhost:3000/api/v1/equipos \
+  -H "Authorization: Bearer $TOKEN"
+
+3. Obtener detalles de un equipo específico
+
+bash
+curl -X GET http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI \
+  -H "Authorization: Bearer $TOKEN"
+
+4. Actualizar un equipo
+
+bash
+curl -X PUT http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Equipo Actualizado",
+    "descripcion": "Descripción actualizada",
+    "color": "#00FF00"
+  }'
+
+5. Agregar miembro al equipo (usando email)
+
+bash
+curl -X POST http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/miembros \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "carlos@example.com",
+    "rol": "miembro"
+  }'
+
+--------------------------------------------------
+--  Testing de Tareas
+--------------------------------------------------
+
+1. Crear una tarea
+
+bash
+curl -X POST http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "Tarea de Testing",
+    "descripcion": "Esta es una tarea para probar la API",
+    "prioridad": "alta",
+    "fechaLimite": "2025-09-25T23:59:59.000Z"
+  }'
+ 
+ -- Guarda el tareaId para las siguientes pruebas
+
+2. Listar tareas del equipo
+
+bash
+curl -X GET "http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas" \
+  -H "Authorization: Bearer $TOKEN"
+
+3. Listar tareas con filtros
+
+bash
+# Por estado
+curl -X GET "http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas?estado=pendiente,en_curso" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Por prioridad
+curl -X GET "http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas?prioridad=alta" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Con búsqueda de texto
+curl -X GET "http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas?busqueda=testing" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Con paginación
+curl -X GET "http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas?pagina=1&limite=5" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Ordenar por fecha límite
+curl -X GET "http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas?ordenarPor=fechaLimite&direccion=ASC" \
+  -H "Authorization: Bearer $TOKEN"
+
+4. Obtener detalles de una tarea
+
+bash
+curl -X GET http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas/TAREA_ID_AQUI \
+  -H "Authorization: Bearer $TOKEN"
+
+5. Actualizar una tarea (cambiar estado)
+
+bash
+curl -X PUT http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas/TAREA_ID_AQUI \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "estado": "en_curso"
+  }'
+
+6. Agregar comentario a una tarea
+
+bash
+curl -X POST http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/tareas/TAREA_ID_AQUI/comentarios \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contenido": "Este es un comentario de prueba para la tarea"
+  }'
+
+--------------------------------------------------
+--  Testing de Etiquetas
+--------------------------------------------------
+
+1. Crear etiqueta
+
+bash
+curl -X POST http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/etiquetas \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Testing",
+    "color": "#FF0000"
+  }'
+ 
+ -- Guarda el etiquetaId para las siguientes pruebas
+
+2. Listar etiquetas del equipo
+
+bash
+curl -X GET http://localhost:3000/api/v1/equipos/EQUIPO_ID_AQUI/etiquetas \
+  -H "Authorization: Bearer $TOKEN"
+
+3. Asociar etiqueta a una tarea
+
+bash
+curl -X POST http://localhost:3000/api/v1/equipos/etiquetas/ETIQUETA_ID_AQUI/tareas/TAREA_ID_AQUI \
+  -H "Authorization: Bearer $TOKEN"
+
+--------------------------------------------------
+--  Testing de Actividad
+--------------------------------------------------
+
+1. Obtener actividad del usuario
+
+bash
+curl -X GET http://localhost:3000/api/v1/actividad/usuario \
+  -H "Authorization: Bearer $TOKEN"
+
+2. Obtener actividad del equipo
+
+bash
+curl -X GET http://localhost:3000/api/v1/actividad/EQUIPO_ID_AQUI/equipo \
+  -H "Authorization: Bearer $TOKEN"
+
+--------------------------------------------------
+--  Testing con Postman
+--------------------------------------------------
+
+Importa esta colección JSON:
+
+json
+{
+  "info": {
+    "name": "Task Manager API",
+    "description": "Colección para testing de la API de Task Manager"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "token", "value": "" },
+    { "key": "equipoId", "value": "" },
+    { "key": "tareaId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana@example.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('token', response.data.token);",
+                  "    pm.test('Login successful', () => {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+--------------------------------------------------
+--  Casos de Prueba Importantes
+--------------------------------------------------
+
+Validaciones de Negocio:
+
+-- Transiciones de estado inválidas
+
+bash
+# Intentar cambiar de 'finalizada' a 'pendiente' (debería fallar)
+curl -X PUT http://localhost:3000/api/v1/equipos/EQUIPO_ID/tareas/TAREA_ID \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"estado": "pendiente"}'
+
+-- Fecha límite en el pasado
+
+bash
+# Intentar crear tarea con fecha pasada (debería fallar)
+curl -X POST http://localhost:3000/api/v1/equipos/EQUIPO_ID/tareas \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "Tarea con fecha pasada",
+    "fechaLimite": "2020-01-01T00:00:00.000Z"
+  }'
+
+-- Eliminación de equipo con tareas activas
+
+bash
+# Intentar eliminar equipo con tareas pendientes (debería fallar)
+curl -X DELETE http://localhost:3000/api/v1/equipos/EQUIPO_ID \
+  -H "Authorization: Bearer $TOKEN"
+
+-- Testing sin Token (debería fallar)
+
+bash
+# Cualquier endpoint protegido sin token
+curl -X GET http://localhost:3000/api/v1/equipos
