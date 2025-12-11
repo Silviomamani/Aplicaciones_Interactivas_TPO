@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import api from '../api/client.js'
 
 export default function NotificationBadge({ pollingInterval = 30000, onCountChange }) {
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  const fetchCount = async () => {
+  const fetchCount = useCallback(async () => {
     try {
       const response = await api.get('/notificaciones/conteo')
       const newCount = response.data.data?.conteo || 0
@@ -18,13 +18,21 @@ export default function NotificationBadge({ pollingInterval = 30000, onCountChan
     } finally {
       setLoading(false)
     }
-  }
+  }, [onCountChange])
 
   useEffect(() => {
     fetchCount()
     const interval = setInterval(fetchCount, pollingInterval)
-    return () => clearInterval(interval)
-  }, [pollingInterval])
+
+    // Escuchar evento manual para refrescar inmediatamente (ej. al marcar leído)
+    const handler = () => fetchCount()
+    window.addEventListener('watcher:refresh-count', handler)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('watcher:refresh-count', handler)
+    }
+  }, [pollingInterval, fetchCount])
 
   if (loading || count === 0) {
     return null

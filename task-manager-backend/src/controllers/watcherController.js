@@ -208,7 +208,7 @@ class WatcherController {
   static async obtenerWatchlist(req, res) {
     try {
       const usuarioId = req.usuario.id;
-      const { status, teamId, updatedSince } = req.query;
+      const { status, teamId, updatedSince, ordenarPor, direccion } = req.query;
       const { limit, offset, pagina } = QueryBuilder.buildPagination(req.query.pagina, req.query.limite);
 
       // Construir where para las tareas
@@ -225,12 +225,19 @@ class WatcherController {
         };
       }
 
+      // Orden: permitir solo updatedAt y direcciones válidas
+      const allowedOrderFields = ['updatedAt'];
+      const orderField = allowedOrderFields.includes(ordenarPor) ? ordenarPor : 'updatedAt';
+      const orderDirection = ['ASC', 'DESC'].includes((direccion || '').toUpperCase())
+        ? direccion.toUpperCase()
+        : 'DESC';
+
       // Obtener los watchers del usuario
       const watchers = await TaskWatcher.findAll({
         where: { userId: usuarioId },
         attributes: ['taskId', 'createdAt']
       });
-
+      
       const taskIds = watchers.map(w => w.taskId);
 
       if (taskIds.length === 0) {
@@ -257,7 +264,7 @@ class WatcherController {
           { model: Usuario, as: 'asignado', attributes: ['id', 'nombre', 'email', 'avatar'] },
           { model: Equipo, as: 'equipo', attributes: ['id', 'nombre', 'color'] }
         ],
-        order: [['updatedAt', 'DESC']],
+        order: [[orderField, orderDirection]],
         limit,
         offset,
         distinct: true

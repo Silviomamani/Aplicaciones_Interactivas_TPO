@@ -8,6 +8,9 @@ import NotificationBadge from './NotificationBadge.jsx'
 export function Layout() {
   const { user, logout } = useAuth()
   const { success, error, info } = useNotifications()
+  // Guardamos conteo previo y el último conteo que ya disparó popup
+  const [lastUnreadCount, setLastUnreadCount] = useState(0)
+  const [lastPopupCount, setLastPopupCount] = useState(0)
 
   // Verificar tareas vencidas o próximas a vencer al cargar
   useEffect(() => {
@@ -88,7 +91,17 @@ export function Layout() {
             style={{ position: 'relative' }}
           >
             Watchlist
-            <NotificationBadge pollingInterval={30000} />
+            <NotificationBadge
+              pollingInterval={30000}
+              onCountChange={(count) => {
+                // Solo disparar una vez por incremento concreto
+                if (count > lastUnreadCount && count !== lastPopupCount) {
+                  info('Tienes nuevas notificaciones sin leer', 'Revisá tu watchlist')
+                  setLastPopupCount(count)
+                }
+                setLastUnreadCount(count)
+              }}
+            />
           </NavLink>
         </nav>
         <div className="sidebar-foot">

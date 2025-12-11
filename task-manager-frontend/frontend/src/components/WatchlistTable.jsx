@@ -8,10 +8,12 @@ export default function WatchlistTable() {
   const { success, error } = useNotifications()
   const [tareas, setTareas] = useState([])
   const [loading, setLoading] = useState(true)
+  const [equipos, setEquipos] = useState([])
   const [filters, setFilters] = useState({
     status: '',
     teamId: '',
-    updatedSince: ''
+    ordenarPor: 'updatedAt',
+    direccion: 'DESC'
   })
   const [pagination, setPagination] = useState({
     paginaActual: 1,
@@ -24,6 +26,18 @@ export default function WatchlistTable() {
     loadWatchlist()
   }, [filters, pagination.paginaActual])
 
+  useEffect(() => {
+    const loadEquipos = async () => {
+      try {
+        const res = await api.get('/equipos')
+        setEquipos(res.data?.data?.equipos || [])
+      } catch (err) {
+        console.error('Error loading equipos:', err)
+      }
+    }
+    loadEquipos()
+  }, [])
+
   const loadWatchlist = async () => {
     try {
       setLoading(true)
@@ -32,7 +46,8 @@ export default function WatchlistTable() {
         limite: pagination.registrosPorPagina,
         ...(filters.status && { status: filters.status }),
         ...(filters.teamId && { teamId: filters.teamId }),
-        ...(filters.updatedSince && { updatedSince: filters.updatedSince })
+        ...(filters.ordenarPor && { ordenarPor: filters.ordenarPor }),
+        ...(filters.direccion && { direccion: filters.direccion })
       })
 
       const response = await api.get(`/watchlist?${params}`)
@@ -67,6 +82,10 @@ export default function WatchlistTable() {
       await api.put(`/tareas/${taskId}/notificaciones/leer`)
       success('Notificaciones marcadas', 'Las notificaciones han sido marcadas como leídas')
       loadWatchlist()
+      // Refrescar el badge inmediatamente
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('watcher:refresh-count'))
+      }
     } catch (err) {
       error('Error', 'No se pudieron marcar las notificaciones como leídas')
       console.error('Error marking as read:', err)
@@ -143,16 +162,30 @@ export default function WatchlistTable() {
           <option value="finalizada">Finalizada</option>
           <option value="cancelada">Cancelada</option>
         </select>
-        <input
-          type="date"
-          value={filters.updatedSince}
-          onChange={(e) => setFilters({ ...filters, updatedSince: e.target.value })}
-          placeholder="Actualizado desde"
+        <select
+          value={filters.teamId}
+          onChange={(e) => setFilters({ ...filters, teamId: e.target.value })}
           style={{ padding: '8px', borderRadius: '4px', border: '1px solid #E5E7EB' }}
-        />
+        >
+          <option value="">Todos los equipos</option>
+          {equipos.map(eq => (
+            <option key={eq.id} value={eq.id}>{eq.nombre}</option>
+          ))}
+        </select>
+        <select
+          value={`${filters.ordenarPor}:${filters.direccion}`}
+          onChange={(e) => {
+            const [ordenarPor, direccion] = e.target.value.split(':')
+            setFilters({ ...filters, ordenarPor, direccion })
+          }}
+          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #E5E7EB' }}
+        >
+          <option value="updatedAt:DESC">Último cambio (recientes primero)</option>
+          <option value="updatedAt:ASC">Último cambio (antiguos primero)</option>
+        </select>
         <Button
           variant="secondary"
-          onClick={() => setFilters({ status: '', teamId: '', updatedSince: '' })}
+          onClick={() => setFilters({ status: '', teamId: '', ordenarPor: 'updatedAt', direccion: 'DESC' })}
         >
           Limpiar filtros
         </Button>
