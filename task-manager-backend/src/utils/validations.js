@@ -174,7 +174,7 @@ const validaciones = {
       .withMessage('Límite debe estar entre 1 y 100'),
     query('ordenarPor')
       .optional()
-      .isIn(['createdAt', 'updatedAt', 'fechaLimite', 'prioridad', 'titulo'])
+      .isIn(['createdAt', 'updatedAt', 'fechaLimite'])
       .withMessage('Campo de ordenamiento inválido'),
     query('direccion')
       .optional()

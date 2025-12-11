@@ -306,7 +306,6 @@ class WatcherController {
 
       const totalPaginas = Math.ceil(result.count / limit);
 
-      // DTO: Solo incluir información necesaria, sin exponer datos sensibles
       const tareasData = result.rows.map(tarea => {
         const isOverdue = tarea.fechaLimite && new Date(tarea.fechaLimite) < new Date() && tarea.estado !== 'finalizada';
         

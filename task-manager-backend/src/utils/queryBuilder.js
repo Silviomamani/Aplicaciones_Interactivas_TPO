@@ -52,7 +52,7 @@ class QueryBuilder {
   }
 
   static buildOrderClause(ordenarPor = 'createdAt', direccion = 'DESC') {
-    const ordenValido = ['createdAt', 'updatedAt', 'fechaLimite', 'prioridad', 'titulo'];
+    const ordenValido = ['createdAt', 'updatedAt', 'fechaLimite'];
     const direccionValida = ['ASC', 'DESC'];
 
     if (!ordenValido.includes(ordenarPor)) {
@@ -61,18 +61,6 @@ class QueryBuilder {
 
     if (!direccionValida.includes(direccion.toUpperCase())) {
       direccion = 'DESC';
-    }
-
-    // Orden especial para prioridad
-    if (ordenarPor === 'prioridad') {
-      return [
-        [
-          'prioridad',
-          direccion === 'ASC' ? 
-            ['baja', 'media', 'alta', 'critica'] : 
-            ['critica', 'alta', 'media', 'baja']
-        ]
-      ];
     }
 
     return [[ordenarPor, direccion]];

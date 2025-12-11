@@ -234,8 +234,9 @@ export default function TaskList() {
           <label className="filter-label">
             Buscar
           </label>
-          <Input
+          <input
             type="search"
+            className="field-input"
             placeholder="Buscar en título y descripción..."
             value={busqueda}
             onChange={(e) => {
@@ -295,9 +296,8 @@ export default function TaskList() {
             onChange={(e) => setOrdenarPor(e.target.value)}
           >
             <option value="fechaLimite">Fecha límite</option>
-            <option value="prioridad">Prioridad</option>
             <option value="createdAt">Fecha de creación</option>
-            <option value="titulo">Título</option>
+            <option value="updatedAt">Fecha de actualización</option>
           </select>
         </div>
 
