@@ -40,8 +40,7 @@ Los hooks excluyen al usuario que realiza el cambio para evitar auto-notificacio
 
 - Validación de UUIDs en parámetros de ruta
 - Validación de query parameters para watchlist (status, teamId, updatedSince, paginación)
-- Límites: máximo 50 watchers por tarea (configurable)
-
+- Límites: máximo 50 watchers por tarea
 ### Frontend
 
 #### Componentes
