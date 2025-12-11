@@ -7,7 +7,6 @@ import Dashboard from './pages/Dashboard.jsx'
 import TaskBoard from './pages/TaskBoard.jsx'
 import TaskList from './pages/TaskList.jsx'
 import TaskForm from './pages/TaskForm.jsx'
-import TaskDetails from './pages/TaskDetails.jsx'
 import Teams from './pages/Teams.jsx'
 import Labels from './pages/Labels.jsx'
 import Activities from './pages/Activities.jsx'
@@ -28,9 +27,7 @@ function App() {
         <Route path="/tareas" element={<TaskList />} />
         <Route path="/tareas/nueva" element={<TaskForm />} />
         <Route path="/tareas/:id" element={<TaskForm />} />
-        <Route path="/tareas/:id" element={<TaskForm />} />
         <Route path="/tareas/:id/editar" element={<TaskForm />} />
-        <Route path="/tareas/:id" element={<TaskDetails />} />
         <Route path="/equipos" element={<Teams />} />
         <Route path="/etiquetas" element={<Labels />} />
         <Route path="/actividades" element={<Activities />} />
