@@ -58,16 +58,14 @@ export default function WatchlistTable() {
       }))
     } catch (err) {
       console.error('Error loading watchlist:', err)
+      error('Error', err.response?.data?.message || 'Error al cargar la watchlist')
+      setTareas([])
     } finally {
       setLoading(false)
     }
   }
 
   const handleUnwatch = async (taskId) => {
-    if (!window.confirm('¿Estás seguro de que deseas desuscribirte de esta tarea?')) {
-      return
-    }
-
     try {
       await api.delete(`/tareas/${taskId}/watchers`)
       success('Desuscripción exitosa', 'Te has desuscrito de la tarea')

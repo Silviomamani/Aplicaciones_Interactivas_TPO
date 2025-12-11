@@ -196,6 +196,14 @@ const validaciones = {
       .optional()
       .isISO8601()
       .withMessage('Fecha inválida'),
+    query('ordenarPor')
+      .optional()
+      .isIn(['updatedAt'])
+      .withMessage('Campo de ordenamiento inválido (solo se permite updatedAt)'),
+    query('direccion')
+      .optional()
+      .isIn(['ASC', 'DESC'])
+      .withMessage('Dirección de ordenamiento inválida (solo ASC o DESC)'),
     query('pagina')
       .optional()
       .isInt({ min: 1 })

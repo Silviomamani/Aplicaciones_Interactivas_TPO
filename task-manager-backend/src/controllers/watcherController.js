@@ -30,6 +30,7 @@ class WatcherController {
         order: [['createdAt', 'ASC']]
       });
 
+      // DTO: Solo incluir información necesaria, sin exponer datos sensibles
       const watchersData = watchers.map(watcher => ({
         id: watcher.id,
         userId: watcher.userId,
@@ -115,6 +116,7 @@ class WatcherController {
         }]
       });
 
+      // DTO: Solo incluir información necesaria
       res.status(201).json({
         success: true,
         data: {
@@ -192,7 +194,8 @@ class WatcherController {
         tareaId: tarea.id
       });
 
-      res.status(204).send();
+      // 204 No Content - respuesta exitosa sin cuerpo
+      return res.status(204).send();
     } catch (error) {
       console.error('Error desuscribiéndose de tarea:', error);
       res.status(500).json({
@@ -303,6 +306,7 @@ class WatcherController {
 
       const totalPaginas = Math.ceil(result.count / limit);
 
+      // DTO: Solo incluir información necesaria, sin exponer datos sensibles
       const tareasData = result.rows.map(tarea => {
         const isOverdue = tarea.fechaLimite && new Date(tarea.fechaLimite) < new Date() && tarea.estado !== 'finalizada';
         
@@ -318,8 +322,16 @@ class WatcherController {
             nombre: tarea.equipo.nombre,
             color: tarea.equipo.color
           },
-          creador: tarea.creador,
-          asignado: tarea.asignado,
+          creador: {
+            id: tarea.creador.id,
+            nombre: tarea.creador.nombre,
+            avatar: tarea.creador.avatar
+          },
+          asignado: tarea.asignado ? {
+            id: tarea.asignado.id,
+            nombre: tarea.asignado.nombre,
+            avatar: tarea.asignado.avatar
+          } : null,
           updatedAt: tarea.updatedAt,
           createdAt: tarea.createdAt,
           isOverdue,
@@ -391,6 +403,7 @@ class WatcherController {
         }
       );
 
+      // 200 OK - operación exitosa con respuesta
       res.json({
         success: true,
         data: {
