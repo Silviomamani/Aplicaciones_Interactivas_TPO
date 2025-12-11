@@ -50,10 +50,12 @@ export default function TaskForm() {
   const [historial, setHistorial] = useState([])
   const [isWatching, setIsWatching] = useState(false)
   const [tareaId, setTareaId] = useState(null)
+  const [tareaCompleta, setTareaCompleta] = useState(null)
 
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [cargando, setCargando] = useState(esEdicion)
+  const [eliminando, setEliminando] = useState(false)
 
   // Cargar equipos al inicio
   useEffect(() => {
@@ -183,6 +185,7 @@ export default function TaskForm() {
     setEtiquetas(t.etiquetas?.map(e => e.id) || [])
     setComentarios(t.comentarios || [])
     setHistorial(t.historialEstados || [])
+    setTareaCompleta(t) // Guardar la tarea completa para verificar asignación
     // Guardar el ID real de la tarea
     if (t.id) {
       setTareaId(t.id)
@@ -629,6 +632,46 @@ export default function TaskForm() {
                 })}
               </div>
             </Card>
+
+            {tareaCompleta && 
+             tareaCompleta.asignado?.id && 
+             user?.id && 
+             String(tareaCompleta.asignado.id) === String(user.id) &&
+             (tareaCompleta.estado === 'finalizada' || tareaCompleta.estado === 'cancelada') && (
+              <Card>
+                <div style={{ padding: '16px', textAlign: 'center' }}>
+                  <Button 
+                    variant="danger" 
+                    onClick={async () => {
+                      if (!window.confirm('¿Estás seguro de que deseas eliminar esta tarea? Esta acción no se puede deshacer y se desuscribirán todos los watchers.')) {
+                        return
+                      }
+
+                      if (!equipoId || !id) {
+                        error('Error', 'No se pudo obtener la información necesaria')
+                        return
+                      }
+
+                      setEliminando(true)
+                      try {
+                        await api.delete(`/tareas/${equipoId}/${id}`)
+                        success('Tarea eliminada', 'La tarea ha sido eliminada exitosamente. Todos los watchers han sido desuscritos automáticamente.')
+                        navigate(`/tareas${equipoId ? `?equipo=${equipoId}` : ''}`)
+                      } catch (err) {
+                        error('Error', err.response?.data?.message || 'Error al eliminar la tarea')
+                        console.error('Error eliminando tarea:', err)
+                      } finally {
+                        setEliminando(false)
+                      }
+                    }}
+                    disabled={eliminando}
+                    style={{ padding: '6px 12px', fontSize: '13px' }}
+                  >
+                    {eliminando ? 'Eliminando...' : 'Eliminar tarea'}
+                  </Button>
+                </div>
+              </Card>
+            )}
           </>
         )}
       </form>
